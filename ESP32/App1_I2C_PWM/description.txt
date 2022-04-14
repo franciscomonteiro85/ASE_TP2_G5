@@ -1,0 +1,8 @@
+#Overview
+A small embedded aplication for reading the temperature value from a I2C temperature sensor and adjust pwm parameters based on that temperature value.
+
+phase 1 (cuurent):
+adjust ledc pwm duty cycle based on temperature.
+
+phase 2:
+create a mcpwm sigal based on temperature.
