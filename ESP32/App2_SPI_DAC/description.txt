@@ -1,0 +1,1 @@
+The DAC converts digital signals into analog and sends them to the ESP32. The ESP32 sends these values to the EEPROM through the SPI.

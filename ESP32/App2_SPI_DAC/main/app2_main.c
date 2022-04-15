@@ -13,6 +13,7 @@
 #include "freertos/task.h"
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
+#include "driver/dac.h"
 
 #include "sdkconfig.h"
 #include "esp_log.h"

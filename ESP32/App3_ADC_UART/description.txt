@@ -1,0 +1,1 @@
+In this application the ADC is being used to read signals from a potentiometer. These signals are calculated to be transformed into voltage to send them to the UART. The UART, in turn, will send these values to be displayed in the terminal. (Idea not Final)
