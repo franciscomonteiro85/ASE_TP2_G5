@@ -1,8 +1,15 @@
-#Overview
+# Overview
 A small embedded aplication for reading the temperature value from a I2C temperature sensor and adjust pwm parameters based on that temperature value.
 
-phase 1 (cuurent):
+## phase 1 (cuurent):
 adjust ledc pwm duty cycle based on temperature.
+for the pwm frequency the idf docs' recomendation was followed and a frequency of 5kHz was choosen.
+the 5kHz freq. gives us a 2**13 = 8192 resolution steps.
+has to make the changes more noticible the intervals for conversion of the temperature value into a duty cycle were:
+temperature: [20 - 30[
+with each ºC being a 200 step in the duty cycle.
+formula: (temperature-20) * 200;
 
-phase 2:
+
+## phase 2:
 create a mcpwm sigal based on temperature.
