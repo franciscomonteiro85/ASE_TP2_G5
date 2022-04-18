@@ -49,10 +49,31 @@ static void uart1_task(void *arg)
         uint8_t i = adc_reading;
         uart_write_bytes(UART_NUM_1, &i, 4*4);
         
-        printf("UART1 sending to UART2: %d\n", i);
+        printf("UART1: %d\n", i);
         //sleep for 1000 ms
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
+}
+
+static void uart2_task(void *arg)
+{
+    unsigned int count = 0;
+    while (1) 
+    {
+        uint8_t data[128];
+        int size = 0;
+
+        if(size != 0) 
+        {
+            uart_read_bytes(UART_NUM_2, data, size, 20 / portTICK_RATE_MS);
+            uint8_t *b;
+            b = &data;
+            printf("UART2: %d - %d\n", count, (int)*b);
+            count++;
+        }
+    }
+    //sleep for 100 ms
+    vTaskDelay(100 / portTICK_PERIOD_MS);
 }
 
 void app_main(void)
@@ -112,4 +133,5 @@ void app_main(void)
     }
 
     xTaskCreate(uart1_task, "uart1_task", ECHO_TASK_STACK_SIZE, NULL, 10, NULL);
+    xTaskCreate(uart2_task, "uart2_task", ECHO_TASK_STACK_SIZE, NULL, 10, NULL);
 }

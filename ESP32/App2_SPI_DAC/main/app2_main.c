@@ -24,50 +24,21 @@
  This code demonstrates how to use the SPI master half duplex mode to read/write a AT932C46D EEPROM (8-bit mode).
 */
 
-#ifdef CONFIG_IDF_TARGET_ESP32
-#  ifdef CONFIG_EXAMPLE_USE_SPI1_PINS
-#    define EEPROM_HOST    SPI1_HOST
-// Use default pins, same as the flash chip.
-#    define PIN_NUM_MISO 7
-#    define PIN_NUM_MOSI 8
-#    define PIN_NUM_CLK  6
-#  else
-#    define EEPROM_HOST    HSPI_HOST
-#    define PIN_NUM_MISO 18
-#    define PIN_NUM_MOSI 23
-#    define PIN_NUM_CLK  19
-#  endif
-
-#  define PIN_NUM_CS   13
-#elif defined CONFIG_IDF_TARGET_ESP32S2
-#  define EEPROM_HOST    SPI2_HOST
-
-#  define PIN_NUM_MISO 37
-#  define PIN_NUM_MOSI 35
-#  define PIN_NUM_CLK  36
-#  define PIN_NUM_CS   34
-#elif defined CONFIG_IDF_TARGET_ESP32C3
-#  define EEPROM_HOST    SPI2_HOST
-
-#  define PIN_NUM_MISO 2
-#  define PIN_NUM_MOSI 7
-#  define PIN_NUM_CLK  6
-#  define PIN_NUM_CS   10
-
-#elif CONFIG_IDF_TARGET_ESP32S3
-#  define EEPROM_HOST    SPI2_HOST
-
-#  define PIN_NUM_MISO 13
-#  define PIN_NUM_MOSI 11
-#  define PIN_NUM_CLK  12
-#  define PIN_NUM_CS   10
-#endif
-
+#   define EEPROM_HOST    VSPI_HOST
+#   define PIN_NUM_MISO 19
+#   define PIN_NUM_MOSI 23
+#   define PIN_NUM_CLK  18
+#   define PIN_NUM_CS   13
 
 static const char TAG[] = "main";
 
 void app_main(void)
 {
+
+    //Initialize DAC
+    dac_output_enable(DAC_CHANNEL_1); //ativar a saida da DAC no GPIO25
+    dac_output_enable(DAC_CHANNEL_2); //ativar a saida da DAC no GPIO26
+
     esp_err_t ret;
 #ifndef CONFIG_EXAMPLE_USE_SPI1_PINS
     ESP_LOGI(TAG, "Initializing bus SPI%d...", EEPROM_HOST+1);
@@ -105,6 +76,15 @@ void app_main(void)
     ret = spi_eeprom_write_enable(eeprom_handle);
     ESP_ERROR_CHECK(ret);
 
+    //set write dac output voltage
+    int i = 0;
+
+    for (i=0; i < 255; i++){
+        dac_output_voltage(DAC_CHANNEL_1, i);
+        vTaskDelay(30 / portTICK_PERIOD_MS);
+    }
+    dac_output_voltage(DAC_CHANNEL_1, 0);
+
     const char test_str[] = "Hello World!";
     ESP_LOGI(TAG, "Write: %s", test_str);
     for (int i = 0; i < sizeof(test_str); i++) {
@@ -118,10 +98,18 @@ void app_main(void)
         ret = spi_eeprom_read(eeprom_handle, i, &test_buf[i]);
         ESP_ERROR_CHECK(ret);
     }
+
+    //read dac output voltage
+    int j = 0;
+    for (j=0; j< 255; j++){
+        dac_output_voltage(DAC_CHANNEL_2, j); //colocar voltagem na saída do canal DAC do GPIO25 
+        vTaskDelay(30 / portTICK_PERIOD_MS); //pequeno delay
+    }
+    dac_output_voltage(DAC_CHANNEL_2, 0);
+
     ESP_LOGI(TAG, "Read: %s", test_buf);
 
     ESP_LOGI(TAG, "Example finished.");
-
     while (1) {
         // Add your main loop handling code here.
         vTaskDelay(1);
