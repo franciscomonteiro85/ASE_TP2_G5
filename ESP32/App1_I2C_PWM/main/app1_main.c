@@ -10,11 +10,14 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "driver/gpio.h"
 
 #include "aledc.h"
 #include "tc74.h"
 
-#define TEMP_READ_INTERVAL          1000 *2 // 2s
+#define TEMP_READ_INTERVAL   1000 *2 // 2s
+#define LED_GPIO        5
+#define THRESHOLD_TEMP      23
 
 static const char *TAG = "i2c_pwm_main";
 
@@ -47,6 +50,12 @@ void ledcontrolTask(void *pv)
         dutycycle = temp_to_duty_cicle(*temperature);
         ESP_LOGI(TAG, "(ledc) Temperature is : %d", *temperature);
         ESP_LOGI(TAG, "(ledc) duty cycle is : %d", dutycycle);
+
+        if(*temperature > THRESHOLD_TEMP) {
+            gpio_set_level(LED_GPIO, 1);
+        } else {
+            gpio_set_level(LED_GPIO, 0);
+        }
 
         aledc_update_duty(dutycycle);
         vTaskDelay(delay);
@@ -88,10 +97,23 @@ void readTempTask(void *pv)
 
 void app_main(void)
 {
+
+    // set up gpio pin
+    gpio_config_t gpio_conf = {
+        .pin_bit_mask = LED_GPIO,
+        .mode = GPIO_MODE_DEF_OUTPUT,
+        .intr_type = GPIO_INTR_DISABLE,
+        .pull_down_en = 0,
+        .pull_up_en = 0,
+    };
+
+    gpio_config(&gpio_conf);
+    gpio_set_level(LED_GPIO, 0);
+
     // shared variable to store the temperature values
     // only wriiten in the logTemp task
     static uint8_t temperature_value;
 
-    xTaskCreate(ledcontrolTask, "t_ledcontrol", 4000, &temperature_value, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(ledcontrolTask, "t_ledcontrol", 1024 * 2, &temperature_value, tskIDLE_PRIORITY, NULL);
     xTaskCreate(readTempTask, "t_readTemp", 1024 * 2, &temperature_value, tskIDLE_PRIORITY, NULL);
 }
