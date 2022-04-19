@@ -40,13 +40,8 @@
 #define NO_OF_SAMPLES   64         
 
 static esp_adc_cal_characteristics_t *adc_chars;
-#if CONFIG_IDF_TARGET_ESP32
 static const adc_channel_t channel = ADC_CHANNEL_0;     //GPIO36 if ADC1, GPIO14 if ADC2
 static const adc_bits_width_t width = ADC_WIDTH_BIT_12;
-#elif CONFIG_IDF_TARGET_ESP32S2
-static const adc_channel_t channel = ADC_CHANNEL_1;     // GPIO7 if ADC1, GPIO17 if ADC2
-static const adc_bits_width_t width = ADC_WIDTH_BIT_13;
-#endif
 static const adc_atten_t atten = ADC_ATTEN_DB_0;
 static const adc_unit_t unit = ADC_UNIT_1;
 
@@ -137,18 +132,40 @@ void app_main(void)
 
     //Characterize ADC
     adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
-    esp_adc_cal_value_t val_type = esp_adc_cal_characterize(unit, atten, width, DEFAULT_VREF, adc_chars);
+    //esp_adc_cal_value_t val_type = esp_adc_cal_characterize(unit, atten, width, DEFAULT_VREF, adc_chars);
+    uint32_t previous_reading = 0;
 
     //ADC Readings
-    while (1) {
+    while (1) 
+    {
+        previous_reading = adc_reading;
         adc_reading = adc1_get_raw((adc1_channel_t)channel);
 
-        //Convert adc_reading to voltage in mV
-        uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
-        printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
+        if (adc_reading == previous_reading)
+        {
+            esp_sleep_enable_timer_wakeup(3000000);  //3 seconds of sleep
+            printf("Entering light sleep\n");
+            uart_wait_tx_idle_polling(CONFIG_ESP_CONSOLE_UART_NUM);
 
-    xTaskCreate(uart1_task, "uart1_task", 2048, NULL, 10, NULL);
-    xTaskCreate(uart2_task, "uart2_task", 2048, NULL, 10, NULL);
+            // Get timestamp before entering sleep 
+            int64_t t_before_us = esp_timer_get_time();
+
+            // Enter sleep mode
+            esp_light_sleep_start();
+
+            // Get timestamp after waking up from sleep
+            int64_t t_after_us = esp_timer_get_time();
+
+            printf("Slept for %lld ms\n", (t_after_us - t_before_us) / 1000);
+           
+        } else
+        {
+            //Convert adc_reading to voltage in mV
+            uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
+            printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            xTaskCreate(uart1_task, "uart1_task", 2048, NULL, 10, NULL);
+            xTaskCreate(uart2_task, "uart2_task", 2048, NULL, 10, NULL);
+        }
+    }
 }
