@@ -33,7 +33,7 @@
 #define BUF_SIZE    (1024)
 #define UART1_GPIO_RX   (4)
 #define UART1_GPIO_TX   (5)
-#define TURN_OFF_GPIO     (36)
+#define TURN_OFF_GPIO   (36)
 
 //define adc
 #define DEFAULT_VREF    1100
@@ -49,7 +49,8 @@ uint32_t adc_reading = 0;
 
 static void uart1_task(void *arg)
 {
-    while (1) {
+    while (1) 
+    {
         uint8_t i = adc_reading;
         uart_write_bytes(UART_NUM_1, &i, 4*4);
         
@@ -66,18 +67,19 @@ static void uart2_task(void *arg)
     {
         uint8_t data[128];
         int size = 0;
-
+        ESP_ERROR_CHECK(uart_get_buffered_data_len(UART_NUM_2, (size_t*)&size));
         if(size != 0) 
         {
             uart_read_bytes(UART_NUM_2, data, size, 20 / portTICK_RATE_MS);
             uint8_t *b;
             b = &data;
-            printf("UART2: %d - %d\n", count, (int)*b);
-            count++;
+            printf("UART2: %d\n", (int)*b);
+            //count++;
         }
+
+        //sleep for 100 ms
+        vTaskDelay(100 / portTICK_PERIOD_MS);
     }
-    //sleep for 100 ms
-    vTaskDelay(100 / portTICK_PERIOD_MS);
 }
 
 void app_main(void)
@@ -136,10 +138,13 @@ void app_main(void)
     uint32_t previous_reading = 0;
 
     //ADC Readings
+    xTaskCreate(uart1_task, "uart1_task", 2048, NULL, 10, NULL);
+    xTaskCreate(uart2_task, "uart2_task", 2048, NULL, 10, NULL);
     while (1) 
     {
         previous_reading = adc_reading;
         adc_reading = adc1_get_raw((adc1_channel_t)channel);
+        printf("Previous: %d; Current: %d\n", previous_reading, adc_reading);
 
         if (adc_reading == previous_reading)
         {
@@ -157,15 +162,12 @@ void app_main(void)
             int64_t t_after_us = esp_timer_get_time();
 
             printf("Slept for %lld ms\n", (t_after_us - t_before_us) / 1000);
-           
         } else
         {
             //Convert adc_reading to voltage in mV
-            uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
-            printf("Raw: %d\tVoltage: %dmV\n", adc_reading, voltage);
+            //uint32_t voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
+            //printf("Raw: %d\n", adc_reading);
             vTaskDelay(pdMS_TO_TICKS(1000));
-            xTaskCreate(uart1_task, "uart1_task", 2048, NULL, 10, NULL);
-            xTaskCreate(uart2_task, "uart2_task", 2048, NULL, 10, NULL);
         }
     }
 }
