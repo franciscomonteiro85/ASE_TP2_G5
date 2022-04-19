@@ -33,9 +33,9 @@
 #define BUF_SIZE    (1024)
 #define UART1_GPIO_RX   (4)
 #define UART1_GPIO_TX   (5)
-#define TURN_OFF_GPIO   (36)
+#define TURN_OFF_GPIO   (27)
 
-//define adc
+//define adc - pin VP
 #define DEFAULT_VREF    1100
 #define NO_OF_SAMPLES   64         
 
@@ -47,22 +47,21 @@ static const adc_unit_t unit = ADC_UNIT_1;
 
 uint32_t voltage = 0;
 
-static void uart1_task(void *arg)
+static void uart1_txtask(void *arg)
 {
     while (1) 
     {
-        uint8_t i = voltage;
-        uart_write_bytes(UART_NUM_1, &i, 4*4);
-        
-        printf("UART1: %d\n", i);
+        int i = voltage;
+        uart_write_bytes(UART_NUM_1, &i, 4*5);
+        printf("UART1 WRITE: %d\n", i);
+
         //sleep for 1000 ms
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 
-static void uart2_task(void *arg)
+static void uart1_rxtask(void *arg)
 {
-    unsigned int count = 0;
     while (1) 
     {
         uint8_t data[128];
@@ -71,10 +70,9 @@ static void uart2_task(void *arg)
         if(size != 0) 
         {
             uart_read_bytes(UART_NUM_2, data, size, 20 / portTICK_RATE_MS);
-            uint8_t *b;
+            uint16_t *b;
             b = &data;
-            printf("UART2: %d\n", (int)*b);
-            //count++;
+            printf("UART1 READ: %d\n", (int)*b);
         }
 
         //sleep for 100 ms
@@ -99,11 +97,10 @@ void app_main(void)
     ESP_ERROR_CHECK(uart_param_config(UART_NUM_1, &uart_config));
     ESP_ERROR_CHECK(uart_set_pin(UART_NUM_1, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
 
-
-    ESP_ERROR_CHECK(uart_driver_install(UART_NUM_2, BUF_SIZE * 2, 0, 0, NULL, intr_alloc_flags));
+     ESP_ERROR_CHECK(uart_driver_install(UART_NUM_2, BUF_SIZE * 2, 0, 0, NULL, intr_alloc_flags));
     ESP_ERROR_CHECK(uart_param_config(UART_NUM_2, &uart_config));
     ESP_ERROR_CHECK(uart_set_pin(UART_NUM_2, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
-
+    
     uart_set_sw_flow_ctrl(UART_NUM_1, true, 0, 0);
 
     esp_rom_gpio_connect_out_signal(UART1_GPIO_RX, UART_PERIPH_SIGNAL(2, SOC_UART_TX_PIN_IDX), false, false);
@@ -118,39 +115,36 @@ void app_main(void)
     //Configure GPIO
     gpio_config_t io_conf = {};
     io_conf.intr_type = GPIO_INTR_DISABLE;
-    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.mode = GPIO_MODE_OUTPUT;
     io_conf.pin_bit_mask = 1ULL << TURN_OFF_GPIO;
     io_conf.pull_down_en = 1;
     io_conf.pull_up_en = 0;
     gpio_config(&io_conf);
+    gpio_set_level(TURN_OFF_GPIO, 1);
 
     //Configure ADC
-    if (unit == ADC_UNIT_1) {
-        adc1_config_width(width);
-        adc1_config_channel_atten(channel, atten);
-    } else {
-        adc2_config_channel_atten((adc2_channel_t)channel, atten);
-    }
+    adc1_config_width(width);
+    adc1_config_channel_atten(channel, atten);
 
     //Characterize ADC
     adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
     esp_adc_cal_value_t val_type = esp_adc_cal_characterize(unit, atten, width, DEFAULT_VREF, adc_chars);
     uint32_t previous_voltage = 0;
-    uint32_t previous_reading = 0;
     uint32_t adc_reading = 0;
 
     //ADC Readings
-    xTaskCreate(uart1_task, "uart1_task", 2048, NULL, 10, NULL);
-    xTaskCreate(uart2_task, "uart2_task", 2048, NULL, 10, NULL);
+    xTaskCreate(uart1_txtask, "uart1_txtask", 2048, NULL, 10, NULL);
+    xTaskCreate(uart1_rxtask, "uart1_rxtask", 2048, NULL, 10, NULL);
     while (1) 
     {
         previous_voltage = voltage;
         adc_reading = adc1_get_raw((adc1_channel_t)channel);
-        printf("Previous: %d; Current: %d\n", previous_reading, adc_reading);
         voltage = esp_adc_cal_raw_to_voltage(adc_reading, adc_chars);
+        printf("Previous: %dmV; Current: %dmV\n", previous_voltage, voltage);
 
         if (voltage >= previous_voltage - 5 && voltage <= previous_voltage + 5)
         {
+            gpio_set_level(TURN_OFF_GPIO, 0);
             esp_sleep_enable_timer_wakeup(3000000);  //3 seconds of sleep
             printf("Entering light sleep\n");
             uart_wait_tx_idle_polling(CONFIG_ESP_CONSOLE_UART_NUM);
@@ -163,8 +157,8 @@ void app_main(void)
 
             // Get timestamp after waking up from sleep
             int64_t t_after_us = esp_timer_get_time();
-
             printf("Slept for %lld ms\n", (t_after_us - t_before_us) / 1000);
+            gpio_set_level(TURN_OFF_GPIO, 1);
         } else
         {
             //Convert adc_reading to voltage in mV
