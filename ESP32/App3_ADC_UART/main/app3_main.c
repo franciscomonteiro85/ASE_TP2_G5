@@ -1,17 +1,20 @@
-/* UART Echo Example
-
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
-
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
-*/
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <sys/time.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/uart.h"
 #include "driver/gpio.h"
+#include "driver/adc.h"
+#include "esp_adc_cal.h"
+#include "driver/uart.h"
 #include "sdkconfig.h"
+#include "esp_rom_gpio.h"
+#include "soc/uart_periph.h"
+
+#include "esp_timer.h"
+#include "esp_sleep.h"
+#include "esp_log.h"
 
 /**
  * This is an example which echos any data it receives on configured UART back to the sender,
@@ -26,18 +29,24 @@
  */
 
 //define uart
-#define ECHO_UART_BAUD_RATE (CONFIG_EXAMPLE_UART_BAUD_RATE)
+#define ECHO_UART_BAUD_RATE 115200
 #define BUF_SIZE    (1024)
 #define UART1_GPIO_RX   (4)
 #define UART1_GPIO_TX   (5)
+#define TURN_OFF_GPIO     (36)
 
 //define adc
 #define DEFAULT_VREF    1100
 #define NO_OF_SAMPLES   64         
 
 static esp_adc_cal_characteristics_t *adc_chars;
-static const adc_channel_t channel = ADC_CHANNEL_6;     //GPIO34 if ADC1, GPIO14 if ADC2
+#if CONFIG_IDF_TARGET_ESP32
+static const adc_channel_t channel = ADC_CHANNEL_0;     //GPIO36 if ADC1, GPIO14 if ADC2
 static const adc_bits_width_t width = ADC_WIDTH_BIT_12;
+#elif CONFIG_IDF_TARGET_ESP32S2
+static const adc_channel_t channel = ADC_CHANNEL_1;     // GPIO7 if ADC1, GPIO17 if ADC2
+static const adc_bits_width_t width = ADC_WIDTH_BIT_13;
+#endif
 static const adc_atten_t atten = ADC_ATTEN_DB_0;
 static const adc_unit_t unit = ADC_UNIT_1;
 
@@ -89,6 +98,15 @@ void app_main(void)
     };
     int intr_alloc_flags = 0;
 
+    ESP_ERROR_CHECK(uart_driver_install(UART_NUM_1, BUF_SIZE * 2, 0, 0, NULL, intr_alloc_flags));
+    ESP_ERROR_CHECK(uart_param_config(UART_NUM_1, &uart_config));
+    ESP_ERROR_CHECK(uart_set_pin(UART_NUM_1, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
+
+
+    ESP_ERROR_CHECK(uart_driver_install(UART_NUM_2, BUF_SIZE * 2, 0, 0, NULL, intr_alloc_flags));
+    ESP_ERROR_CHECK(uart_param_config(UART_NUM_2, &uart_config));
+    ESP_ERROR_CHECK(uart_set_pin(UART_NUM_2, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
+
     uart_set_sw_flow_ctrl(UART_NUM_1, true, 0, 0);
 
     esp_rom_gpio_connect_out_signal(UART1_GPIO_RX, UART_PERIPH_SIGNAL(2, SOC_UART_TX_PIN_IDX), false, false);
@@ -120,7 +138,6 @@ void app_main(void)
     //Characterize ADC
     adc_chars = calloc(1, sizeof(esp_adc_cal_characteristics_t));
     esp_adc_cal_value_t val_type = esp_adc_cal_characterize(unit, atten, width, DEFAULT_VREF, adc_chars);
-    print_char_val_type(val_type);
 
     //ADC Readings
     while (1) {
@@ -132,6 +149,6 @@ void app_main(void)
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 
-    xTaskCreate(uart1_task, "uart1_task", ECHO_TASK_STACK_SIZE, NULL, 10, NULL);
-    xTaskCreate(uart2_task, "uart2_task", ECHO_TASK_STACK_SIZE, NULL, 10, NULL);
+    xTaskCreate(uart1_task, "uart1_task", 2048, NULL, 10, NULL);
+    xTaskCreate(uart2_task, "uart2_task", 2048, NULL, 10, NULL);
 }
