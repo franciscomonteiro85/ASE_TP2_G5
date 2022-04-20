@@ -1,1 +1,7 @@
-In this application the ADC is being used to read signals from a potentiometer. These signals are calculated to be transformed into voltage to send them to the UART. The UART1 writes and the UART2 reads and sends these values to be displayed in the terminal. Also, power management has been implemented. When the last value read by the ADC is in between 5 mV comparing to the previous one, the ESP32 will enter a light sleep mode for 3 seconds.
+In this application the ADC is being used to read signals from a potentiometer. The readings have 12 bits.
+These 12 bits are calculated to be transformed into voltage to be used by the UART. There are 2 UART1 tasks.
+The UART1_TX task is responsible for writing the voltage values in a buffer and the UART1_RX is responsible 
+for reading these values to be displayed in the terminal. Also, power management has been implemented. 
+When the last value read by the ADC has a 5mV difference comparing to the previous value, the ESP32 will 
+enter in a light sleep mode for 3 seconds. This will trigger a GPIO which is connected to an LED to 
+turn it off while it is in sleep mode.
