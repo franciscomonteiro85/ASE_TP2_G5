@@ -9,6 +9,7 @@ has to make the changes more noticible the intervals for conversion of the tempe
 temperature: [20 - 30[
 with each ºC being a 200 step in the duty cycle.
 formula: (temperature-20) * 200;
+additionally, when temperature is above 23, an LED in GPIO 12 will turn on
 
 
 ## phase 2:
