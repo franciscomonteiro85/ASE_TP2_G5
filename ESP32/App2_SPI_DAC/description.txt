@@ -1,1 +1,7 @@
 The DAC converts digital signals into analog and sends them to the ESP32. The ESP32 sends these values to the EEPROM through the SPI.
+
+While writing to the eeprom the app ligth up a LED in GPIO 25.
+
+Note:
+
+The SPI part of the app isnt fully functional even when using other colegues work for the eeprom driver.
