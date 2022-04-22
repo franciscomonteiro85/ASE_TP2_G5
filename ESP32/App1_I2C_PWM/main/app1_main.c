@@ -15,9 +15,9 @@
 #include "aledc.h"
 #include "tc74.h"
 
-#define TEMP_READ_INTERVAL   1000 *2 // 2s
-#define LED_GPIO        5
-#define THRESHOLD_TEMP      23
+#define TEMP_READ_INTERVAL  1000 *2 // 2s
+#define LED_GPIO    12
+#define THRESHOLD_TEMP  23
 
 static const char *TAG = "i2c_pwm_main";
 
@@ -100,10 +100,10 @@ void app_main(void)
 
     // set up gpio pin
     gpio_config_t gpio_conf = {
-        .pin_bit_mask = LED_GPIO,
-        .mode = GPIO_MODE_DEF_OUTPUT,
+        .pin_bit_mask = 1ULL << LED_GPIO,
+        .mode = GPIO_MODE_OUTPUT,
         .intr_type = GPIO_INTR_DISABLE,
-        .pull_down_en = 0,
+        .pull_down_en = 1,
         .pull_up_en = 0,
     };
 
