@@ -1,0 +1,6 @@
+Acenta em torno do sensor de temperatura TC74 e I2C.
+O valor da temperatura influencia o duty cycle de forma a que quanto maior a temperatura mais um led brilha.
+De forma a garantir persistencia dos dados é usada uma memoria E2PROM SPI para os guardar.
+É tambem usado um pino gpio para controlar um led com base num valor da temperatura (temperatura threshold).
+A solução é tambem composta por um pequeno web server de forma a expor os valores de temperatura captados e controlar o valor da temperatura threshold.
+	
