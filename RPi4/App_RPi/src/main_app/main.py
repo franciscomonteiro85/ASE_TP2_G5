@@ -11,8 +11,6 @@ from tc74 import TC74
 from server import app, run
 import threading
 
-env = Env()
-
 # thread that rus the main loop
 t:threading.Thread = None
 
@@ -36,12 +34,12 @@ def init_components():
     #mem = E2PROM(env.E2PROM_SPI_CH, env.E2PROM_CE_NR)
 
     # GPIO Led init
-    led = LED(env.GPIO_LED_NR)
+    led = LED(Env.GPIO_LED_NR)
     # PWM Led init
-    pwm_led = PWMLED(pin=env.PWM_LED_NR, frequency=env.PWM_LED_FREQ)
+    pwm_led = PWMLED(pin=Env.PWM_LED_NR, frequency=Env.PWM_LED_FREQ)
 
     # initialize tx74 temp sensor
-    tc74_sensor = TC74(SMBus(env.I2C_BUS))
+    tc74_sensor = TC74(SMBus(Env.I2C_BUS))
     # after SMB/I2C bus initialiation, there is a need for a pause to let the I2C 'settle'
     sleep(0.5)
 
@@ -77,12 +75,15 @@ def toggle_gpio_led(led:LED, temp: int):
 
 def main():
     #initializa all components
+    print("@main: initing components")
     comps = init_components()
+    print("@main: components initialized")
+
     
     # main loop
     while(True):
         # read sensor temperature and put it in stanby until next read
-        temp_value = comps.tc74.read_temp_auto()
+        temp_value = comps.tc74.read_temp()
         print("@main: temp value: "+str(temp_value))
 
         #write to shared cvariable
@@ -102,8 +103,8 @@ def main():
 
 if __name__ == "__main__":
     # spin main loop thread
-    t = threading.Thread(target=main)
-    t.start()
-
+    #t = threading.Thread(target=main)
+    #t.start()
+    main()
     # start server
-    run(app, host='localhost', port=8080)
+    #run(app, host='localhost', port=8080)
