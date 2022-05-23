@@ -84,6 +84,9 @@ def main():
         # read sensor temperature and put it in stanby until next read
         temp_value = comps.tc74.read_temp_auto()
         print("@main: temp value: "+str(temp_value))
+
+        #write to shared cvariable
+        Env.TEMP = temp_value
         
         # update pwm powered led duty cycle 
         duty_cycle = temp_to_duty_cycle(temp_value)

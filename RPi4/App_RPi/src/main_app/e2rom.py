@@ -18,7 +18,8 @@ class E2PROM:
         """
         self.spi = spidev.SpiDev(spi_bus, spi_cs)
         self.spi.max_speed_hz = _SPI_SPEED_HZ
-        self.spi.cshigh = False # CS is active low
+        # not writable, but 
+        # self.spi.cshigh = False # CS is active low
 
     def close(self):
         """Disconnect from the spi device.

@@ -10,5 +10,7 @@ class Env:
     E2PROM_CE_NR = 0
     E2PROM_SPI_CH = 0
 
+    # shared variables 
     TEMP_THRESHOLD = 20
+    TEMP = -1
 

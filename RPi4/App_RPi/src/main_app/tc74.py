@@ -1,4 +1,4 @@
-import env
+from env import Env
 from smbus2 import SMBus
 
 _READ_TEMP_REG = 0
@@ -20,7 +20,7 @@ class TC74:
         # SMBus object for I2C bus communication
         self.bus = bus
         # device I2C bus address
-        self.address = env.TC74_I2C_ADD
+        self.address = Env.TC74_I2C_ADD
 
     def set_mode(self, mode:int) -> int:
         """Sets the device to the given mode. Writes value to register.
