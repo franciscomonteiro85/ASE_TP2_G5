@@ -1,0 +1,20 @@
+body {
+    background: white;
+    color: black;
+}
+
+h1 {
+    margin-top: 50px;
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+h2 {
+    text-align: left;
+    margin-left: 10px;
+}
+
+.tempDiv {
+    border-style: groove;
+    border-radius: 25px;
+}
