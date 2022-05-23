@@ -13,13 +13,12 @@
             <form class="form-inline">
                 <label class="thresholdLabel">Threshold: </h2>
                 <input id="threshInput" type="text" class="form-control pull-right" placeholder="Degrees">
-                <button onclick="setThreshold()">Set threshold</button>
+                <button type="button" onclick="setThreshold()">Set threshold</button>
             </form>
         </div>
 
         <div class="threshSetDiv row">
-            <h3>Threshold is set at</h3>
-            <h3 id="thresholdValue"></h3>
+            <h3>Threshold is set at <var id="thresholdValue"></var> ºC</h3>
         </div>
     </body>
 </html>
@@ -38,5 +37,8 @@
     {
         let inputValue = document.getElementById("threshInput").value
         document.getElementById("thresholdValue").innerHTML = inputValue
+        fetch('/set_threshold/' + inputValue, {     
+            method: "POST",
+        })
     }
 </script>
