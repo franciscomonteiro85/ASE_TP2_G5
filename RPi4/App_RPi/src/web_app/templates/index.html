@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
     <head>
         <link rel="stylesheet" href='/static/style.css' />
@@ -5,11 +6,37 @@
     <body>
         <h1>Raspberry Pi 4 Temperature Control Project</h1>
         <div class="tempDiv">
-            <h2>Temperature: {{temperature}} ºC </h2>
+            <h2>Temperature: <var id="temperature"></var>  ºC </h2>
         </div>
 
-        <div>
-            <h2></h2>
+        <div class="threshDiv">
+            <form class="form-inline">
+                <label class="thresholdLabel">Threshold: </h2>
+                <input id="threshInput" type="text" class="form-control pull-right" placeholder="Degrees">
+                <button onclick="setThreshold()">Set threshold</button>
+            </form>
+        </div>
+
+        <div class="threshSetDiv row">
+            <h3>Threshold is set at</h3>
+            <h3 id="thresholdValue"></h3>
         </div>
     </body>
 </html>
+
+<script>
+    setInterval(function () 
+    {
+        let myRequest = new Request('/get_temperature');
+            fetch(myRequest).then(response => response.json()).then(function (data) 
+            {
+                document.getElementById("temperature").innerHTML = data['output']
+            });
+    }, 1000)
+
+    function setThreshold() 
+    {
+        let inputValue = document.getElementById("threshInput").value
+        document.getElementById("thresholdValue").innerHTML = inputValue
+    }
+</script>

@@ -14,7 +14,35 @@ h2 {
     margin-left: 10px;
 }
 
+h3 {
+    text-align: center;
+}
+
 .tempDiv {
     border-style: groove;
     border-radius: 25px;
+}
+
+.threshDiv {
+    border-style: groove;
+    border-radius: 25px;
+    margin-top: 50px;
+    padding-bottom: 10px;
+}
+
+.threshSetDiv {
+    border-style: groove;
+    border-radius: 25px;
+    margin: auto;
+    margin-top: 50px;
+    width: 50%;
+}
+
+.thresholdLabel {
+    font-size: 1.5em;
+    font-weight: bolder;
+}
+.form-inline {
+    margin-left: 10px;
+    margin-top: 10px;
 }
