@@ -26,7 +26,7 @@ h3 {
 .threshDiv {
     border-style: groove;
     border-radius: 25px;
-    margin-top: 50px;
+    margin-top: 40px;
     padding-bottom: 10px;
 }
 
@@ -34,7 +34,7 @@ h3 {
     border-style: groove;
     border-radius: 25px;
     margin: auto;
-    margin-top: 50px;
+    margin-top: 40px;
     width: 50%;
 }
 

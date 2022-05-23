@@ -54,9 +54,7 @@ def temp_to_duty_cycle(temperature: int) -> float:
     Returns:
         float: duty cycle in [0.0, 1.0] range.
     """
-    start_temp = 20
-    duty_cycle_step = 0.1
-    return (temperature-start_temp)*duty_cycle_step
+    return (temperature-Env.START_TEMPERATURE)*Env.DUTY_CYCLE_STEP
 
 def toggle_gpio_led(led:LED, temp: int):
     """_summary_
@@ -66,7 +64,7 @@ def toggle_gpio_led(led:LED, temp: int):
         temp (int): _description_
     """
 
-    threshold_temp  = env.TEMP_THRESHOLD
+    threshold_temp  = Env.TEMP_THRESHOLD
 
     if(temp > threshold_temp):
         led.on()
