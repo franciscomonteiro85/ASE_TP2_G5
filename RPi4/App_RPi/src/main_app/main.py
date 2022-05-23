@@ -66,7 +66,7 @@ def toggle_gpio_led(led:LED, temp: int):
         temp (int): _description_
     """
 
-    threshold_temp  = env.TEMP_THRESHOLD
+    threshold_temp  = Env.TEMP_THRESHOLD
 
     if(temp > threshold_temp):
         led.on()
