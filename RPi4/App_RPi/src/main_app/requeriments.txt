@@ -1,1 +1,5 @@
+bottle==0.12.19
+colorzero==2.0
+gpiozero==1.6.2
 smbus2==0.4.1
+spidev==3.5
