@@ -11,15 +11,32 @@
 
         <div class="threshDiv">
             <form class="form-inline">
-                <label class="thresholdLabel">Threshold: </h2>
+                <label class="thresholdLabel">Threshold: </label>
                 <input id="threshInput" type="text" class="form-control pull-right" placeholder="Degrees">
-                <button onclick="setThreshold()">Set threshold</button>
+                <button type="button" onclick="setThreshold()">Set</button>
+            </form>
+        </div>
+
+        <div class="threshDiv">
+            <form class="form-inline">
+                <label class="thresholdLabel">Duty cycle step: </label>
+                <input id="stepInput" type="text" class="form-control pull-right" placeholder="Float">
+                <button type="button" onclick="setDutyStep()">Set</button>
+            </form>
+        </div>
+
+        <div class="threshDiv">
+            <form class="form-inline">
+                <label class="thresholdLabel">Starting Temperature: </label>
+                <input id="startTempInput" type="text" class="form-control pull-right" placeholder="Degrees">
+                <button type="button" onclick="setStartTemp()">Set</button>
             </form>
         </div>
 
         <div class="threshSetDiv row">
-            <h3>Threshold is set at</h3>
-            <h3 id="thresholdValue"></h3>
+            <h3>Threshold is set at <var id="thresholdValue"></var> ºC</h3>
+            <h3>Duty cycle step is set at <var id="stepValue"></var></h3>
+            <h3>Starting temperature is set at <var id="startTempValue"></var> ºC</h3>  
         </div>
     </body>
 </html>
@@ -27,8 +44,8 @@
 <script>
     setInterval(function () 
     {
-        let myRequest = new Request('/get_temperature');
-            fetch(myRequest).then(response => response.json()).then(function (data) 
+        let temperatureRequest = new Request('/get_temperature');
+            fetch(temperatureRequest).then(response => response.json()).then(function (data) 
             {
                 document.getElementById("temperature").innerHTML = data['output']
             });
@@ -38,5 +55,26 @@
     {
         let inputValue = document.getElementById("threshInput").value
         document.getElementById("thresholdValue").innerHTML = inputValue
+        fetch('/set_threshold/' + inputValue, {     
+            method: "POST",
+        })
+    }
+
+    function setDutyStep()
+    {
+        let inputValue = document.getElementById("stepInput").value
+        document.getElementById("stepValue").innerHTML = inputValue
+        fetch('/set_duty_cycle/' + inputValue, {     
+            method: "POST",
+        })
+    }
+
+    function setStartTemp()
+    {
+        let inputValue = document.getElementById("startTempInput").value
+        document.getElementById("startTempValue").innerHTML = inputValue
+        fetch('/set_start_temp/' + inputValue, {     
+            method: "POST",
+        })
     }
 </script>
