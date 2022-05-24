@@ -9,14 +9,14 @@ An external server may be used as proxy.
 app = Bottle()
 
 @app.get('/temp')
-def get_t_temp():
+def get_temp():
     """
     Get current threshold temperature.
     """
     return str(Env.TEMP)
 
 @app.get('/t_temp')
-def get_t_temp():
+def set_t_temp():
     """
     Get current threshold temperature.
     """
