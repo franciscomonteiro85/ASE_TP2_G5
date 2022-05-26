@@ -54,7 +54,12 @@ def temp_to_duty_cycle(temperature: int) -> float:
     Returns:
         float: duty cycle in [0.0, 1.0] range.
     """
-    return (temperature-Env.START_TEMPERATURE)*Env.DUTY_CYCLE_STEP
+    dc = (temperature-Env.START_TEMPERATURE)*Env.DUTY_CYCLE_STEP
+    if dc >= 1.0:
+        dc=1.0
+    if dc <= 0.0:
+        dc = 0.0
+    return dc
 
 def toggle_gpio_led(led:LED, temp: int):
     """_summary_
@@ -101,8 +106,8 @@ def main():
 
 if __name__ == "__main__":
     # spin main loop thread
-    #t = threading.Thread(target=main)
-    #t.start()
-    main()
-    # start server
-    #run(app, host='localhost', port=8080)
+    t = threading.Thread(target=main)
+    t.start()
+    #main()
+    # start config server
+    run(app, host='localhost', port=8080)

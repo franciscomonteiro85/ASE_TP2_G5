@@ -1,3 +1,9 @@
+"""
+Code for a handler class of TC74 temperature sensor.
+Based on code for a C lib to handle the same sensor:
+https://github.com/ThomasGeor/esp32_tc74_temperature_sensor/
+"""
+
 from env import Env
 from smbus2 import SMBus
 
