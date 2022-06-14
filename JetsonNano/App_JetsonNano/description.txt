@@ -1,0 +1,5 @@
+Jetson nano application to detect and classify hand gestures from a video feed with the objective of controlling a system that is decomposable into a state-machine.
+
+Used mediapipe (https://google.github.io/mediapipe/solutions/solutions.html) to extract hand landmarks from the video frames.
+Those landmarks are then passed to a classifier that atributes a label to the gesture being made.
+Those same labels are used as states in a state machine that lets developers hook into the liSfecycle of its states (on_entry, on_leaves) and into transitions between states (add_transition).
